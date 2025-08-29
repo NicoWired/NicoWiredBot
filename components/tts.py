@@ -5,11 +5,12 @@ from kokoro import KPipeline
 
 
 class TTSComponent(commands.Component):
-    def __init__(self):
+    def __init__(self, bot: commands.AutoBot):
         # not used yet, should be useful for a queueing system.
         super().__init__()
         self.tts_queue: list = []
         self.tts_playing: bool = False
+        self.bot = bot
     
     @commands.command()
     async def tts(self, ctx: commands.Context, *message: str) -> None:
