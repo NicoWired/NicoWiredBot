@@ -10,3 +10,4 @@ kokoro/*
 kokoro
 misaki/*
 misaki
+*.backup

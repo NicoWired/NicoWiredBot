@@ -10,6 +10,7 @@ class CoreComponent(commands.Component):
     def __init__(self, bot: commands.AutoBot) -> None:
         self.bot = bot
 
+    @commands.is_broadcaster()
     @commands.command(aliases=["rl"])
     async def reload(self, _ctx) -> None:
 

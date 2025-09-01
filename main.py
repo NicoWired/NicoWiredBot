@@ -7,6 +7,8 @@ import twitchio
 from twitchio import eventsub
 from nicowiredbot import NicoWiredBot
 from misaki import en, espeak
+import server
+import threading
 
 if TYPE_CHECKING:
     import sqlite3
@@ -64,6 +66,9 @@ def main() -> None:
             root_logger.addHandler(file_handler)
 
     async def runner() -> None:
+        # Start the server in a separate thread
+        server.start()
+        
         async with asqlite.create_pool("tokens.db") as tdb:
             tokens, subs = await setup_database(tdb)
 

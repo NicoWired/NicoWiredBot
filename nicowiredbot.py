@@ -28,6 +28,7 @@ class NicoWiredBot(commands.AutoBot):
             prefix=self.prefix,
             subscriptions=subs,
             force_subscribe=True,
+            ignore_own_messages=False,
         )
 
     async def setup_hook(self) -> None:
@@ -74,4 +75,5 @@ class NicoWiredBot(commands.AutoBot):
         return resp
 
     async def event_ready(self) -> None:
-        self.logger.info("Successfully logged in as: %s", self.bot_id)
+        self.logger.info("---------------Successfully logged in as: %s", self.bot_id)
+        print("NicoWiredBot is up and running")
