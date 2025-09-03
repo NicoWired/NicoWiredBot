@@ -2,7 +2,7 @@ import asqlite
 import twitchio
 import logging
 from twitchio.ext import commands
-from components.core import CoreComponent
+from components.core import CoreComponent, load_components
 from twitchio import eventsub
 
 class NicoWiredBot(commands.AutoBot):
@@ -14,11 +14,13 @@ class NicoWiredBot(commands.AutoBot):
             , config: dict
             , logger: logging.Logger
             , prefix:str = "!"
+            , socials:str = {}
         ) -> None:
         self.token_database = token_database
         self.config = config
         self.logger = logger
         self.prefix = prefix
+        self.socials = socials
 
         super().__init__(
             client_id=self.config["CLIENT_ID"],
@@ -34,6 +36,7 @@ class NicoWiredBot(commands.AutoBot):
     async def setup_hook(self) -> None:
         # add the core component. that component will take care of laoding everything else.
         await self.add_component(CoreComponent(self))
+        await load_components(self)
 
     async def event_oauth_authorized(self, payload: twitchio.authentication.UserTokenPayload) -> None:
         await self.add_token(payload.access_token, payload.refresh_token)
@@ -73,7 +76,7 @@ class NicoWiredBot(commands.AutoBot):
 
         self.logger.info("Added token to the database for user: %s", resp.user_id)
         return resp
-
+    
     async def event_ready(self) -> None:
         self.logger.info("---------------Successfully logged in as: %s", self.bot_id)
         print("NicoWiredBot is up and running")

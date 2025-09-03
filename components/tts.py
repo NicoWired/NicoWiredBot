@@ -9,10 +9,9 @@ class TTSComponent(commands.Component):
     TTS_CD: int = 60
 
     def __init__(self, bot: commands.AutoBot):
-        # not used yet, should be useful for a queueing system.
         super().__init__()
-        self.tts_queue: list = []
-        self.tts_playing: bool = False
+        #self.tts_queue: list = []
+        #self.tts_playing: bool = False
         self.cooldown: dict = {}
         self.bot:commands.AutoBot = bot
 
@@ -32,12 +31,17 @@ class TTSComponent(commands.Component):
             self.bot.logger.info(f"user {ctx.chatter.id} tried to use TTS while not following")
             await ctx.send(f"{ctx.chatter} you need to follow {ctx.broadcaster} if you want to use this comamnd.")
             return
-        print(5)
+        
+        text = ' '.join(message)
+        if len(text) == 0:
+            ctx.send(f"""@{ctx.chatter} you need to specify a message for the TTS.
+                     Example: "!tts this is the best stream ever!" """)
+            return
+
         self.bot.logger.info(f"user {ctx.chatter.id} successfuly invoked TTSD")
         self.cooldown.update({"user": ctx.chatter.id, "cd": datetime.now().timestamp()})
 
         pipeline = KPipeline(lang_code='a') # a = english
-        text = ' '.join(message)
 
         # Collect all chunks into one array
         generator = pipeline(text, voice='af_heart')

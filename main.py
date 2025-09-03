@@ -1,14 +1,14 @@
+import json
 import asyncio
 import logging
+import server
 from typing import TYPE_CHECKING
 from dotenv import dotenv_values
 import asqlite
 import twitchio
 from twitchio import eventsub
 from nicowiredbot import NicoWiredBot
-from misaki import en, espeak
-import server
-import threading
+
 
 if TYPE_CHECKING:
     import sqlite3
@@ -65,6 +65,10 @@ def main() -> None:
             root_logger.removeHandler(handler)
             root_logger.addHandler(file_handler)
 
+    # get social links
+    with open("socials.json", "r") as f:
+        socials = json.load(f)
+
     async def runner() -> None:
         # Start the server in a separate thread
         server.start()
@@ -76,7 +80,8 @@ def main() -> None:
                     token_database=tdb,
                     subs=subs,
                     config=dotenv_values(".env"),
-                    logger=LOGGER
+                    logger=LOGGER,
+                    socials=socials
                 ) as bot:
                 for pair in tokens:
                     await bot.add_token(*pair)
