@@ -30,3 +30,7 @@
 - `!commands` (alias: `!help`)
   - Description: Posts a link to this page.
   - Usage: `!commands` or `!help`
+
+- `!spotify` (alias: `!playlist`)
+  - Description: Links to the stream's Spotify playlist.
+  - Usage: `!spotify` or `!playlist`

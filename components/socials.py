@@ -35,6 +35,12 @@ class SocialsComponent(commands.Component):
         github = self.bot.socials.get("github")
         if github:
             await ctx.send(f"Find Nico's code, including this bot, here: {self.bot.socials["github"]}")
+
+    @commands.command(aliases=["playlist"])
+    async def spotify(self, ctx: commands.Context) -> None:
+        spotify = self.bot.socials.get("spotify")
+        if spotify:
+            await ctx.send(f"Nico's playlist: {self.bot.socials["spotify"]}")
     
     @commands.command(aliases=["help"])
     async def commands(self, ctx: commands.Context) -> None:
