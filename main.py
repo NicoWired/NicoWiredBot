@@ -1,7 +1,7 @@
 import json
 import asyncio
 import logging
-import server
+import server2 as server
 from typing import TYPE_CHECKING
 from dotenv import dotenv_values
 import asqlite

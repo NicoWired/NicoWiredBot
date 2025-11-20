@@ -8,6 +8,7 @@ async def load_components(bot: commands.AutoBot) -> None:
     PRD_COMPONENTS = {
         "components.tts":  "TTSComponent",
         "components.socials":  "SocialsComponent",
+        "components.routines": "RoutinesComponent",
     }
     for k,v in PRD_COMPONENTS.items():
 

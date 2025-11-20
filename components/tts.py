@@ -2,7 +2,7 @@ import numpy as np
 from twitchio.ext import commands
 from kokoro import KPipeline
 from datetime import datetime
-from server import send_audio_to_obs
+from server2 import send_audio_to_obs
 
 
 class TTSComponent(commands.Component):

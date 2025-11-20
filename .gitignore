@@ -6,6 +6,7 @@
 *.pyc
 __pycache__/*
 nwbot/*
+nwbot_venv/*
 kokoro/*
 kokoro
 misaki/*
