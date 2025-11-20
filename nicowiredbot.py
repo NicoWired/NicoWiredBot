@@ -34,7 +34,6 @@ class NicoWiredBot(commands.AutoBot):
         )
 
     async def setup_hook(self) -> None:
-        # add the core component. that component will take care of laoding everything else.
         await self.add_component(CoreComponent(self))
         await load_components(self)
 

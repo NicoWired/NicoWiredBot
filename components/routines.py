@@ -1,26 +1,33 @@
-from twitchio.ext import commands, routines
 import datetime
+import random
+
+from twitchio.ext import commands, routines
+
+from components.social_messages import available_social_commands, build_social_message
 
 class RoutinesComponent(commands.Component):
     def __init__(self, bot: commands.AutoBot) -> None:
         self.bot = bot
 
-    # Define your routines here as methods, decorated with @routines.routine
-    @routines.routine(delta=datetime.timedelta(minutes=1))  # Example: Runs every 1 minute
-    async def example_routine(self):
-        # Your routine logic here
-        self.bot.logger.info("Example routine running: Checking something...")
-        # Example: Send a message to the chat
-        channel = await self.bot.fetch_channel("your_channel_name")  # Replace with your actual Twitch channel name (e.g., the broadcaster's username)
-        await channel.send("Routine check: Everything looks good!")
+    @routines.routine(delta=datetime.timedelta(minutes=45), wait_first=True)
+    async def socials_routine(self) -> None:
+        commands_pool = available_social_commands(self.bot.socials)
+        if not commands_pool:
+            self.bot.logger.info("No social links configured; skipping social routine.")
+            return
 
-    # Add more routines as needed
-    @routines.routine(delta=datetime.timedelta(hours=1), iterations=5)  # Example: Runs every hour, up to 5 times
-    async def hourly_reminder(self):
-        self.bot.logger.info("Hourly reminder routine running...")
-        # Add your logic
+        command = random.choice(commands_pool)
+        message = build_social_message(command, self.bot.socials)
+        if not message:
+            self.bot.logger.info("Social routine skipped; no message built for %s", command)
+            return
+
+        owner = await self.bot.fetch_user(id=self.bot.owner_id)
+        await owner.send_message(
+            message,
+            sender=self.bot.bot_id,
+            token_for=self.bot.bot_id,
+        )
 
     async def component_load(self) -> None:
-        # Start the routines when the component loads
-        await self.example_routine.start()
-        await self.hourly_reminder.start()
+        await self.socials_routine.start()
