@@ -9,7 +9,7 @@ class RoutinesComponent(commands.Component):
     def __init__(self, bot: commands.AutoBot) -> None:
         self.bot = bot
 
-    @routines.routine(delta=datetime.timedelta(minutes=45), wait_first=True)
+    @routines.routine(delta=datetime.timedelta(minutes=45), wait_first=False)
     async def socials_routine(self) -> None:
         commands_pool = available_social_commands(self.bot.socials)
         if not commands_pool:

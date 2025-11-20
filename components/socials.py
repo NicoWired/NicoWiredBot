@@ -2,48 +2,34 @@ from twitchio.ext import commands
 
 from components.social_messages import build_social_message
 
+SOCIAL_COMMANDS =[
+    # function name, aliases (if any)
+    ("socials", ["linktree", "lt"]),
+    ("discord", []),
+    ("twitter", ["x"]),
+    ("bluesky", ["bsky"]),
+    ("github", ["gh"]),
+    ("spotify", ["playlist"]),
+]
+
 
 class SocialsComponent(commands.Component):
     def __init__(self, bot: commands.AutoBot):
         super().__init__()
-        self.bot: commands.AutoBot = bot
+        self.bot = bot
+        for name, aliases in SOCIAL_COMMANDS:
+            self._register_social_command(name, aliases)
 
-    @commands.command(aliases=["linktree", "lt"])
-    async def socials(self, ctx: commands.Context) -> None:
-        message = build_social_message("socials", self.bot.socials)
-        if message:
-            await ctx.send(message)
+    def _register_social_command(self, key: str, aliases: list[str]) -> None:
+        async def command_creator(ctx: commands.Context) -> None:
+            message = build_social_message(key, self.bot.socials)
+            if message:
+                await ctx.send(message)
 
-    @commands.command()
-    async def discord(self, ctx: commands.Context) -> None:
-        message = build_social_message("discord", self.bot.socials)
-        if message:
-            await ctx.send(message)
+        command_creator.__name__ = key
+        social_command = commands.command(name=key, aliases=aliases)
+        setattr(self, key, social_command(command_creator))
 
-    @commands.command(aliases=["x"])
-    async def twitter(self, ctx: commands.Context) -> None:
-        message = build_social_message("twitter", self.bot.socials)
-        if message:
-            await ctx.send(message)
-
-    @commands.command(aliases=["bsky"])
-    async def bluesky(self, ctx: commands.Context) -> None:
-        message = build_social_message("bluesky", self.bot.socials)
-        if message:
-            await ctx.send(message)
-
-    @commands.command(aliases=["gh"])
-    async def github(self, ctx: commands.Context) -> None:
-        message = build_social_message("github", self.bot.socials)
-        if message:
-            await ctx.send(message)
-
-    @commands.command(aliases=["playlist"])
-    async def spotify(self, ctx: commands.Context) -> None:
-        message = build_social_message("spotify", self.bot.socials)
-        if message:
-            await ctx.send(message)
-    
     @commands.command(aliases=["help"])
     async def commands(self, ctx: commands.Context) -> None:
         await ctx.send(f"You can find all available commands here: https://tinyurl.com/5n6z53jx")
