@@ -12,3 +12,5 @@ kokoro
 misaki/*
 misaki
 *.backup
+lancedb
+lancedb/*

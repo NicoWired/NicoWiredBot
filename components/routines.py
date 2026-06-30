@@ -30,4 +30,4 @@ class RoutinesComponent(commands.Component):
         )
 
     async def component_load(self) -> None:
-        await self.socials_routine.start()
+        self.socials_routine.start()

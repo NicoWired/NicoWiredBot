@@ -4,6 +4,7 @@ import logging
 from twitchio.ext import commands
 from components.core import CoreComponent, load_components
 from twitchio import eventsub
+from datetime import datetime
 
 class NicoWiredBot(commands.AutoBot):
     def __init__(
@@ -21,6 +22,7 @@ class NicoWiredBot(commands.AutoBot):
         self.logger = logger
         self.prefix = prefix
         self.socials = socials
+        self.stream_online = False
 
         super().__init__(
             client_id=self.config["CLIENT_ID"],
@@ -50,6 +52,8 @@ class NicoWiredBot(commands.AutoBot):
         # A list of subscriptions we would like to make to the newly authorized channel...
         subs: list[eventsub.SubscriptionPayload] = [
             eventsub.ChatMessageSubscription(broadcaster_user_id=payload.user_id, user_id=self.bot_id),
+            eventsub.StreamOnlineSubscription(broadcaster_user_id=payload.user_id),
+            eventsub.StreamOfflineSubscription(broadcaster_user_id=payload.user_id)
         ]
 
         resp: twitchio.MultiSubscribePayload = await self.multi_subscribe(subs)
@@ -75,6 +79,14 @@ class NicoWiredBot(commands.AutoBot):
 
         self.logger.info("Added token to the database for user: %s", resp.user_id)
         return resp
+
+    async def event_stream_online(self, payload: twitchio.StreamOnline) -> None:
+        self.stream_online = True
+        self.logger.info(f"Stream online at {datetime.now()}")
+
+    async def event_stream_offline(self, payload: twitchio.StreamOffline) -> None:
+        self.stream_online = False
+        self.logger.info(f"Stream offline at {datetime.now()}")
     
     async def event_ready(self) -> None:
         self.logger.info("---------------Successfully logged in as: %s", self.bot_id)

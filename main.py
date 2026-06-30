@@ -1,7 +1,7 @@
 import json
 import asyncio
 import logging
-import server2 as server
+import server3 as server
 from typing import TYPE_CHECKING
 from dotenv import dotenv_values
 import asqlite
@@ -47,7 +47,11 @@ async def setup_database(db: asqlite.Pool) -> tuple[list[tuple[str, str]], list[
             if row["user_id"] == BOT_ID:
                 continue
 
-            subs.extend([eventsub.ChatMessageSubscription(broadcaster_user_id=row["user_id"], user_id=BOT_ID)])
+            subs.extend([
+                eventsub.ChatMessageSubscription(broadcaster_user_id=row["user_id"], user_id=BOT_ID),
+                eventsub.StreamOnlineSubscription(broadcaster_user_id=row["user_id"]),
+                eventsub.StreamOfflineSubscription(broadcaster_user_id=row["user_id"])
+            ])
 
     return tokens, subs
 

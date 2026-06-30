@@ -5,10 +5,10 @@ from components.social_messages import build_social_message
 SOCIAL_COMMANDS =[
     # function name, aliases (if any)
     ("socials", ["linktree", "lt"]),
-    ("discord", []),
+    ("discord", ["dc"]),
     ("twitter", ["x"]),
     ("bluesky", ["bsky"]),
-    ("github", ["gh"]),
+    #("github", ["gh"]),
     ("spotify", ["playlist"]),
 ]
 
