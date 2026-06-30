@@ -1,6 +1,6 @@
 aiohttp
 asqlite
-dotenv-python
+python-dotenv
 kokoro
 numpy
 twitchio
