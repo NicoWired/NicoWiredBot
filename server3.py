@@ -3,6 +3,9 @@ import base64
 import io
 import json
 import logging
+import os
+import secrets
+import dotenv
 import threading
 import wave
 from typing import Set
@@ -17,6 +20,28 @@ LOGGER.addHandler(logging.StreamHandler())
 
 HOST = "0.0.0.0"
 HTTP_PORT = 8998
+
+# ---------------- Auth / limits ----------------
+# Set this in your environment before starting the server, e.g.:
+#   export TTS_AUTH_TOKEN="a-long-random-string"
+# If it's not set, the server generates a random one at startup and logs it
+# once so nothing is ever silently unprotected.
+AUTH_TOKEN = dotenv.dotenv_values(".env").get("TTS_AUTH_TOKEN") or secrets.token_urlsafe(24)
+if not dotenv.dotenv_values(".env").get("TTS_AUTH_TOKEN"):
+    LOGGER.warning(
+        "TTS_AUTH_TOKEN not set in environment; generated a temporary token "
+        "for this run: %s (set TTS_AUTH_TOKEN to persist it across restarts)",
+        AUTH_TOKEN,
+    )
+
+# Max concurrent SSE clients allowed at once. You only need 1 (OBS), so this
+# is a tripwire against someone holding many connections open.
+MAX_CLIENTS = int(os.environ.get("TTS_MAX_CLIENTS", "2"))
+
+
+def _token_ok(request: web.Request) -> bool:
+    supplied = request.query.get("key", "")
+    return secrets.compare_digest(supplied, AUTH_TOKEN)
 
 # Connected SSE clients each get their own queue
 _client_queues: Set[asyncio.Queue] = set()
@@ -76,7 +101,7 @@ _HTML = """<!doctype html>
 
     function connect(){
       document.getElementById('s').textContent = 'Connecting...';
-      es = new EventSource('/events');
+      es = new EventSource('/events?key=__AUTH_TOKEN__');
       es.onopen = () => { document.getElementById('s').textContent = 'Connected'; ensureCtx(); warm(); };
       es.onerror = () => { document.getElementById('s').textContent = 'Disconnected (retrying)'; };
       es.onmessage = ev => {
@@ -202,14 +227,25 @@ def send_wav_bytes_to_obs(wav_bytes: bytes):
 
 
 # ---------------- HTTP handlers ----------------
-async def _root(_: web.Request):
-    return web.Response(text=_HTML, content_type="text/html", headers={"Cache-Control": "no-store"})
+async def _root(request: web.Request):
+    if not _token_ok(request):
+        LOGGER.warning("rejected unauthenticated / request from %s", request.remote)
+        return web.Response(status=403, text="forbidden")
+    page = _HTML.replace("__AUTH_TOKEN__", AUTH_TOKEN)
+    return web.Response(text=page, content_type="text/html", headers={"Cache-Control": "no-store"})
 
 
 async def _events(request: web.Request):
+    if not _token_ok(request):
+        LOGGER.warning("rejected unauthenticated /events request from %s", request.remote)
+        return web.Response(status=403, text="forbidden")
+    if len(_client_queues) >= MAX_CLIENTS:
+        LOGGER.warning("rejected /events from %s: at MAX_CLIENTS (%d)", request.remote, MAX_CLIENTS)
+        return web.Response(status=503, text="too many clients")
+
     q: asyncio.Queue = asyncio.Queue(maxsize=100)
     _client_queues.add(q)
-    LOGGER.info("client connected (%d total)", len(_client_queues))
+    LOGGER.info("client connected from %s (%d total)", request.remote, len(_client_queues))
     resp = web.StreamResponse(
         status=200,
         headers={
@@ -233,7 +269,7 @@ async def _events(request: web.Request):
         pass
     finally:
         _client_queues.discard(q)
-        LOGGER.info("client disconnected (%d total)", len(_client_queues))
+        LOGGER.info("client disconnected from %s (%d total)", request.remote, len(_client_queues))
     return resp
 
 
